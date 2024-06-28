@@ -14,7 +14,7 @@ if [ "$SKIP_ACTIVATION" != "true" ]; then
 
   export no_proxy=10.224.197.250,.unity3d.com,.unity.com,.voltstro.dev,$no_proxy
   export NO_PROXY=10.224.197.250,.unity3d.com,.unity.com,.voltstro.dev,$NO_PROXY
-  export NODE_TLS_REJECT_UNAUTHORIZED=0
+  # export NODE_TLS_REJECT_UNAUTHORIZED=0
 
   printenv
 
