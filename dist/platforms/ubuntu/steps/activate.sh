@@ -101,6 +101,11 @@ fi
 if [ $UNITY_EXIT_CODE -eq 0 ]; then
   # Activation was a success
   echo "Activation complete."
+
+  cat ~/.config/unity3d/Editor.log
+  cat ~/.config/unity3d/Unity/Unity.Licensing.Client.log
+  cat ~/.config/unity3d/Unity/Unity.Entitlements.Audit.log
+  cat ~/.config/UnityHub/logs/info-log.json
 else
   # Activation failed so exit with the code from the license verification step
   echo "Unclassified error occured while trying to activate license."

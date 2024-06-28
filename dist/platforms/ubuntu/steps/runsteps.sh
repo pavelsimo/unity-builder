@@ -10,18 +10,13 @@ if [ "$SKIP_ACTIVATION" != "true" ]; then
 
   echo $HTTP_PROXY
   echo $HTTPS_PROXY
+  export NO_PROXY=10.224.197.250,$NO_PROXY
   echo $NO_PROXY
 
   source /steps/activate.sh
 
   # If we didn't activate successfully, exit with the exit code from the activation step.
   if [[ $UNITY_EXIT_CODE -ne 0 ]]; then
-
-    cat ~/.config/unity3d/Editor.log
-    cat ~/.config/unity3d/Unity/Unity.Licensing.Client.log
-    cat ~/.config/unity3d/Unity/Unity.Entitlements.Audit.log
-    cat ~/.config/UnityHub/logs/info-log.json
-
     exit $UNITY_EXIT_CODE
   fi
 else
