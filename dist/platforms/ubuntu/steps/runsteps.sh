@@ -11,6 +11,7 @@ if [ "$SKIP_ACTIVATION" != "true" ]; then
   echo $HTTP_PROXY
   echo $HTTPS_PROXY
   export NO_PROXY=10.224.197.250,$NO_PROXY
+  export NODE_TLS_REJECT_UNAUTHORIZED=0
   echo $NO_PROXY
 
   source /steps/activate.sh
