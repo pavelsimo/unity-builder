@@ -1,7 +1,8 @@
 {
   "licensingServiceBaseUrl": "%URL%",
+  "enableProxyAutoconfig": true,
   "enableEntitlementLicensing": true,
-  "enableFloatingApi": true,
-  "clientConnectTimeoutSec": 5,
-  "clientHandshakeTimeoutSec": 10
+  "hubDisablePersonalLicense": true
 }
+
+
