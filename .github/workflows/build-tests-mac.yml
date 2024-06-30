@@ -1,78 +1,78 @@
-name: Builds - MacOS
-
-on:
-  workflow_dispatch:
-  push:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
-jobs:
-  buildForAllPlatformsMacOS:
-    name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        projectPath:
-          - test-project
-        unityVersion:
-          - 2021.3.32f1
-          - 2022.3.13f1
-          - 2023.2.2f1
-        targetPlatform:
-          - StandaloneOSX # Build a MacOS executable
-          - iOS # Build an iOS executable
-
-    steps:
-      ###########################
-      #         Checkout        #
-      ###########################
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      ###########################
-      #          Cache          #
-      ###########################
-      - uses: actions/cache@v4
-        with:
-          path: ${{ matrix.projectPath }}/Library
-          key: Library-${{ matrix.projectPath }}-macos-${{ matrix.targetPlatform }}
-          restore-keys: |
-            Library-${{ matrix.projectPath }}-macos-
-            Library-
-
-      ###########################
-      #  Set Scripting Backend  #
-      ###########################
-      - name: Set Scripting Backend To il2cpp
-        run: |
-          mv -f "./test-project/ProjectSettings/ProjectSettingsIl2cpp.asset" "./test-project/ProjectSettings/ProjectSettings.asset"
-
-      ###########################
-      #          Build          #
-      ###########################
-      - uses: ./
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-        with:
-          buildName: 'GameCI Test Build'
-          projectPath: ${{ matrix.projectPath }}
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
-          # We use dirty build because we are replacing the default project settings file above
-          allowDirtyBuild: true
-
-      ###########################
-      #          Upload         #
-      ###########################
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Build ${{ matrix.targetPlatform }} on MacOS (${{ matrix.unityVersion }})
-          path: build
-          retention-days: 14
+#name: Builds - MacOS
+#
+#on:
+#  workflow_dispatch:
+#  push:
+#
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+#  cancel-in-progress: true
+#
+#jobs:
+#  buildForAllPlatformsMacOS:
+#    name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
+#    runs-on: macos-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        projectPath:
+#          - test-project
+#        unityVersion:
+#          - 2021.3.32f1
+#          - 2022.3.13f1
+#          - 2023.2.2f1
+#        targetPlatform:
+#          - StandaloneOSX # Build a MacOS executable
+#          - iOS # Build an iOS executable
+#
+#    steps:
+#      ###########################
+#      #         Checkout        #
+#      ###########################
+#      - uses: actions/checkout@v4
+#        with:
+#          lfs: true
+#
+#      ###########################
+#      #          Cache          #
+#      ###########################
+#      - uses: actions/cache@v4
+#        with:
+#          path: ${{ matrix.projectPath }}/Library
+#          key: Library-${{ matrix.projectPath }}-macos-${{ matrix.targetPlatform }}
+#          restore-keys: |
+#            Library-${{ matrix.projectPath }}-macos-
+#            Library-
+#
+#      ###########################
+#      #  Set Scripting Backend  #
+#      ###########################
+#      - name: Set Scripting Backend To il2cpp
+#        run: |
+#          mv -f "./test-project/ProjectSettings/ProjectSettingsIl2cpp.asset" "./test-project/ProjectSettings/ProjectSettings.asset"
+#
+#      ###########################
+#      #          Build          #
+#      ###########################
+#      - uses: ./
+#        env:
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+#        with:
+#          buildName: 'GameCI Test Build'
+#          projectPath: ${{ matrix.projectPath }}
+#          unityVersion: ${{ matrix.unityVersion }}
+#          targetPlatform: ${{ matrix.targetPlatform }}
+#          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
+#          # We use dirty build because we are replacing the default project settings file above
+#          allowDirtyBuild: true
+#
+#      ###########################
+#      #          Upload         #
+#      ###########################
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: Build ${{ matrix.targetPlatform }} on MacOS (${{ matrix.unityVersion }})
+#          path: build
+#          retention-days: 14

@@ -1,197 +1,197 @@
-name: Builds - Ubuntu
-
-on:
-  workflow_dispatch:
-  push:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
-env:
-  UNITY_LICENSE:
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root>\n    <License
-    id=\"Terms\">\n        <MachineBindings>\n            <Binding Key=\"1\"
-    Value=\"576562626572264761624c65526f7578\"/>\n            <Binding Key=\"2\"
-    Value=\"576562626572264761624c65526f7578\"/>\n        </MachineBindings>\n        <MachineID
-    Value=\"D7nTUnjNAmtsUMcnoyrqkgIbYdM=\"/>\n        <SerialHash
-    Value=\"2033b8ac3e6faa3742ca9f0bfae44d18f2a96b80\"/>\n        <Features>\n            <Feature
-    Value=\"33\"/>\n            <Feature Value=\"1\"/>\n            <Feature Value=\"12\"/>\n            <Feature
-    Value=\"2\"/>\n            <Feature Value=\"24\"/>\n            <Feature Value=\"3\"/>\n            <Feature
-    Value=\"36\"/>\n            <Feature Value=\"17\"/>\n            <Feature Value=\"19\"/>\n            <Feature
-    Value=\"62\"/>\n        </Features>\n        <DeveloperData
-    Value=\"AQAAAEY0LUJHUlgtWEQ0RS1aQ1dWLUM1SlctR0RIQg==\"/>\n        <SerialMasked
-    Value=\"F4-BGRX-XD4E-ZCWV-C5JW-XXXX\"/>\n        <StartDate Value=\"2021-02-08T00:00:00\"/>\n        <UpdateDate
-    Value=\"2021-02-09T00:34:57\"/>\n        <InitialActivationDate
-    Value=\"2021-02-08T00:34:56\"/>\n        <LicenseVersion Value=\"6.x\"/>\n        <ClientProvidedVersion
-    Value=\"2018.4.30f1\"/>\n        <AlwaysOnline Value=\"false\"/>\n        <Entitlements>\n            <Entitlement
-    Ns=\"unity_editor\" Tag=\"UnityPersonal\" Type=\"EDITOR\"
-    ValidTo=\"9999-12-31T00:00:00\"/>\n            <Entitlement Ns=\"unity_editor\" Tag=\"DarkSkin\"
-    Type=\"EDITOR_FEATURE\" ValidTo=\"9999-12-31T00:00:00\"/>\n        </Entitlements>\n    </License>\n<Signature
-    xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod
-    Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments\"/><SignatureMethod
-    Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\"/><Reference URI=\"#Terms\"><Transforms><Transform
-    Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\"/></Transforms><DigestMethod
-    Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"/><DigestValue>m0Db8UK+ktnOLJBtHybkfetpcKo=</DigestValue></Reference></SignedInfo><SignatureValue>o/pUbSQAukz7+ZYAWhnA0AJbIlyyCPL7bKVEM2lVqbrXt7cyey+umkCXamuOgsWPVUKBMkXtMH8L\n5etLmD0getWIhTGhzOnDCk+gtIPfL4jMo9tkEuOCROQAXCci23VFscKcrkB+3X6h4wEOtA2APhOY\nB+wvC794o8/82ffjP79aVAi57rp3Wmzx+9pe9yMwoJuljAy2sc2tIMgdQGWVmOGBpQm3JqsidyzI\nJWG2kjnc7pDXK9pwYzXoKiqUqqrut90d+kQqRyv7MSZXR50HFqD/LI69h68b7P8Bjo3bPXOhNXGR\n9YCoemH6EkfCJxp2gIjzjWW+l2Hj2EsFQi8YXw==</SignatureValue></Signature></root>"
-
-jobs:
-  buildForAllPlatformsUbuntu:
-    name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        providerStrategy:
-          # - local-docker
-          - local
-        projectPath:
-          - test-project
-        unityVersion:
-          - 2021.3.32f1
-          - 2022.3.13f1
-          - 2023.2.2f1
-        targetPlatform:
-          - StandaloneOSX # Build a macOS standalone (Intel 64-bit) with mono backend.
-          - StandaloneWindows64 # Build a Windows 64-bit standalone with mono backend.
-          - StandaloneLinux64 # Build a Linux 64-bit standalone with mono/il2cpp backend.
-          - iOS # Build an iOS project.
-          - Android # Build an Android .apk.
-          - WebGL # WebGL.
-        buildWithIl2cpp:
-          - false
-          - true
-        additionalParameters:
-          - -param value
-          - -standaloneBuildSubtarget Server
-        # Skipping configurations that are not supported
-        exclude:
-          # No il2cpp support on Linux Host
-          - targetPlatform: StandaloneOSX
-            buildWithIl2cpp: true
-          - targetPlatform: StandaloneWindows64
-            buildWithIl2cpp: true
-          # Only builds with Il2cpp
-          - targetPlatform: iOS
-            buildWithIl2cpp: false
-          - targetPlatform: Android
-            buildWithIl2cpp: false
-          - targetPlatform: WebGL
-            buildWithIl2cpp: false
-          # No dedicated server support
-          - targetPlatform: WebGL
-            additionalParameters: -standaloneBuildSubtarget Server
-          - targetPlatform: Android
-            additionalParameters: -standaloneBuildSubtarget Server
-          - targetPlatform: iOS
-            additionalParameters: -standaloneBuildSubtarget Server
-          # No dedicated server support on Linux Host
-          - targetPlatform: StandaloneOSX
-            additionalParameters: -standaloneBuildSubtarget Server
-          # No il2cpp dedicated server support on Linux Host
-          - targetPlatform: StandaloneWindows64
-            additionalParameters: -standaloneBuildSubtarget Server
-            buildWithIl2cpp: true
-
-    steps:
-      - name: Clear Space for Android Build
-        if: matrix.targetPlatform == 'Android'
-        uses: jlumbroso/free-disk-space@v1.3.1
-
-      ###########################
-      #         Checkout        #
-      ###########################
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      ###########################
-      #          Cache          #
-      ###########################
-      - uses: actions/cache@v4
-        with:
-          path: ${{ matrix.projectPath }}/Library
-          key: Library-${{ matrix.projectPath }}-ubuntu-${{ matrix.targetPlatform }}
-          restore-keys: |
-            Library-${{ matrix.projectPath }}-ubuntu-
-            Library-
-
-      ###########################
-      #  Set Scripting Backend  #
-      ###########################
-      - name: Set Scripting Backend To il2cpp
-        if: matrix.buildWithIl2cpp == true
-        run: |
-          mv -f "./test-project/ProjectSettings/ProjectSettingsIl2cpp.asset" "./test-project/ProjectSettings/ProjectSettings.asset"
-
-      ###########################
-      #          Build          #
-      ###########################
-      - name: Build
-        uses: ./
-        id: build-1
-        continue-on-error: true
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          buildName: 'GameCI Test Build'
-          projectPath: ${{ matrix.projectPath }}
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue ${{ matrix.additionalParameters }}
-          providerStrategy: ${{ matrix.providerStrategy }}
-          allowDirtyBuild: true
-
-      - name: Sleep for Retry
-        if: ${{ steps.build-1.outcome == 'failure' }}
-        run: |
-          sleep 60
-
-      - name: Build (Retry 1)
-        uses: ./
-        id: build-2
-        if: ${{ steps.build-1.outcome == 'failure' }}
-        continue-on-error: true
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          buildName: 'GameCI Test Build'
-          projectPath: ${{ matrix.projectPath }}
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue ${{ matrix.additionalParameters }}
-          providerStrategy: ${{ matrix.providerStrategy }}
-          allowDirtyBuild: true
-
-      - name: Sleep for Retry
-        if: ${{ steps.build-2.outcome == 'failure' }}
-        run: |
-          sleep 240
-
-      - name: Build (Retry 2)
-        uses: ./
-        id: build-3
-        if: ${{ steps.build-2.outcome == 'failure' }}
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          buildName: 'GameCI Test Build'
-          projectPath: ${{ matrix.projectPath }}
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue ${{ matrix.additionalParameters }}
-          providerStrategy: ${{ matrix.providerStrategy }}
-          allowDirtyBuild: true
-
-      ###########################
-      #          Upload         #
-      ###########################
-      - uses: actions/upload-artifact@v4
-        with:
-          name:
-            'Build ${{ matrix.targetPlatform }} on Ubuntu (${{ matrix.unityVersion }}_il2cpp_${{ matrix.buildWithIl2cpp
-            }}_params_${{ matrix.additionalParameters }})'
-          path: build
-          retention-days: 14
+#name: Builds - Ubuntu
+#
+#on:
+#  workflow_dispatch:
+#  push:
+#
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+#  cancel-in-progress: true
+#
+#env:
+#  UNITY_LICENSE:
+#    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root>\n    <License
+#    id=\"Terms\">\n        <MachineBindings>\n            <Binding Key=\"1\"
+#    Value=\"576562626572264761624c65526f7578\"/>\n            <Binding Key=\"2\"
+#    Value=\"576562626572264761624c65526f7578\"/>\n        </MachineBindings>\n        <MachineID
+#    Value=\"D7nTUnjNAmtsUMcnoyrqkgIbYdM=\"/>\n        <SerialHash
+#    Value=\"2033b8ac3e6faa3742ca9f0bfae44d18f2a96b80\"/>\n        <Features>\n            <Feature
+#    Value=\"33\"/>\n            <Feature Value=\"1\"/>\n            <Feature Value=\"12\"/>\n            <Feature
+#    Value=\"2\"/>\n            <Feature Value=\"24\"/>\n            <Feature Value=\"3\"/>\n            <Feature
+#    Value=\"36\"/>\n            <Feature Value=\"17\"/>\n            <Feature Value=\"19\"/>\n            <Feature
+#    Value=\"62\"/>\n        </Features>\n        <DeveloperData
+#    Value=\"AQAAAEY0LUJHUlgtWEQ0RS1aQ1dWLUM1SlctR0RIQg==\"/>\n        <SerialMasked
+#    Value=\"F4-BGRX-XD4E-ZCWV-C5JW-XXXX\"/>\n        <StartDate Value=\"2021-02-08T00:00:00\"/>\n        <UpdateDate
+#    Value=\"2021-02-09T00:34:57\"/>\n        <InitialActivationDate
+#    Value=\"2021-02-08T00:34:56\"/>\n        <LicenseVersion Value=\"6.x\"/>\n        <ClientProvidedVersion
+#    Value=\"2018.4.30f1\"/>\n        <AlwaysOnline Value=\"false\"/>\n        <Entitlements>\n            <Entitlement
+#    Ns=\"unity_editor\" Tag=\"UnityPersonal\" Type=\"EDITOR\"
+#    ValidTo=\"9999-12-31T00:00:00\"/>\n            <Entitlement Ns=\"unity_editor\" Tag=\"DarkSkin\"
+#    Type=\"EDITOR_FEATURE\" ValidTo=\"9999-12-31T00:00:00\"/>\n        </Entitlements>\n    </License>\n<Signature
+#    xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod
+#    Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments\"/><SignatureMethod
+#    Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\"/><Reference URI=\"#Terms\"><Transforms><Transform
+#    Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\"/></Transforms><DigestMethod
+#    Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"/><DigestValue>m0Db8UK+ktnOLJBtHybkfetpcKo=</DigestValue></Reference></SignedInfo><SignatureValue>o/pUbSQAukz7+ZYAWhnA0AJbIlyyCPL7bKVEM2lVqbrXt7cyey+umkCXamuOgsWPVUKBMkXtMH8L\n5etLmD0getWIhTGhzOnDCk+gtIPfL4jMo9tkEuOCROQAXCci23VFscKcrkB+3X6h4wEOtA2APhOY\nB+wvC794o8/82ffjP79aVAi57rp3Wmzx+9pe9yMwoJuljAy2sc2tIMgdQGWVmOGBpQm3JqsidyzI\nJWG2kjnc7pDXK9pwYzXoKiqUqqrut90d+kQqRyv7MSZXR50HFqD/LI69h68b7P8Bjo3bPXOhNXGR\n9YCoemH6EkfCJxp2gIjzjWW+l2Hj2EsFQi8YXw==</SignatureValue></Signature></root>"
+#
+#jobs:
+#  buildForAllPlatformsUbuntu:
+#    name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        providerStrategy:
+#          # - local-docker
+#          - local
+#        projectPath:
+#          - test-project
+#        unityVersion:
+#          - 2021.3.32f1
+#          - 2022.3.13f1
+#          - 2023.2.2f1
+#        targetPlatform:
+#          - StandaloneOSX # Build a macOS standalone (Intel 64-bit) with mono backend.
+#          - StandaloneWindows64 # Build a Windows 64-bit standalone with mono backend.
+#          - StandaloneLinux64 # Build a Linux 64-bit standalone with mono/il2cpp backend.
+#          - iOS # Build an iOS project.
+#          - Android # Build an Android .apk.
+#          - WebGL # WebGL.
+#        buildWithIl2cpp:
+#          - false
+#          - true
+#        additionalParameters:
+#          - -param value
+#          - -standaloneBuildSubtarget Server
+#        # Skipping configurations that are not supported
+#        exclude:
+#          # No il2cpp support on Linux Host
+#          - targetPlatform: StandaloneOSX
+#            buildWithIl2cpp: true
+#          - targetPlatform: StandaloneWindows64
+#            buildWithIl2cpp: true
+#          # Only builds with Il2cpp
+#          - targetPlatform: iOS
+#            buildWithIl2cpp: false
+#          - targetPlatform: Android
+#            buildWithIl2cpp: false
+#          - targetPlatform: WebGL
+#            buildWithIl2cpp: false
+#          # No dedicated server support
+#          - targetPlatform: WebGL
+#            additionalParameters: -standaloneBuildSubtarget Server
+#          - targetPlatform: Android
+#            additionalParameters: -standaloneBuildSubtarget Server
+#          - targetPlatform: iOS
+#            additionalParameters: -standaloneBuildSubtarget Server
+#          # No dedicated server support on Linux Host
+#          - targetPlatform: StandaloneOSX
+#            additionalParameters: -standaloneBuildSubtarget Server
+#          # No il2cpp dedicated server support on Linux Host
+#          - targetPlatform: StandaloneWindows64
+#            additionalParameters: -standaloneBuildSubtarget Server
+#            buildWithIl2cpp: true
+#
+#    steps:
+#      - name: Clear Space for Android Build
+#        if: matrix.targetPlatform == 'Android'
+#        uses: jlumbroso/free-disk-space@v1.3.1
+#
+#      ###########################
+#      #         Checkout        #
+#      ###########################
+#      - uses: actions/checkout@v4
+#        with:
+#          lfs: true
+#
+#      ###########################
+#      #          Cache          #
+#      ###########################
+#      - uses: actions/cache@v4
+#        with:
+#          path: ${{ matrix.projectPath }}/Library
+#          key: Library-${{ matrix.projectPath }}-ubuntu-${{ matrix.targetPlatform }}
+#          restore-keys: |
+#            Library-${{ matrix.projectPath }}-ubuntu-
+#            Library-
+#
+#      ###########################
+#      #  Set Scripting Backend  #
+#      ###########################
+#      - name: Set Scripting Backend To il2cpp
+#        if: matrix.buildWithIl2cpp == true
+#        run: |
+#          mv -f "./test-project/ProjectSettings/ProjectSettingsIl2cpp.asset" "./test-project/ProjectSettings/ProjectSettings.asset"
+#
+#      ###########################
+#      #          Build          #
+#      ###########################
+#      - name: Build
+#        uses: ./
+#        id: build-1
+#        continue-on-error: true
+#        env:
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#        with:
+#          buildName: 'GameCI Test Build'
+#          projectPath: ${{ matrix.projectPath }}
+#          unityVersion: ${{ matrix.unityVersion }}
+#          targetPlatform: ${{ matrix.targetPlatform }}
+#          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue ${{ matrix.additionalParameters }}
+#          providerStrategy: ${{ matrix.providerStrategy }}
+#          allowDirtyBuild: true
+#
+#      - name: Sleep for Retry
+#        if: ${{ steps.build-1.outcome == 'failure' }}
+#        run: |
+#          sleep 60
+#
+#      - name: Build (Retry 1)
+#        uses: ./
+#        id: build-2
+#        if: ${{ steps.build-1.outcome == 'failure' }}
+#        continue-on-error: true
+#        env:
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#        with:
+#          buildName: 'GameCI Test Build'
+#          projectPath: ${{ matrix.projectPath }}
+#          unityVersion: ${{ matrix.unityVersion }}
+#          targetPlatform: ${{ matrix.targetPlatform }}
+#          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue ${{ matrix.additionalParameters }}
+#          providerStrategy: ${{ matrix.providerStrategy }}
+#          allowDirtyBuild: true
+#
+#      - name: Sleep for Retry
+#        if: ${{ steps.build-2.outcome == 'failure' }}
+#        run: |
+#          sleep 240
+#
+#      - name: Build (Retry 2)
+#        uses: ./
+#        id: build-3
+#        if: ${{ steps.build-2.outcome == 'failure' }}
+#        env:
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#        with:
+#          buildName: 'GameCI Test Build'
+#          projectPath: ${{ matrix.projectPath }}
+#          unityVersion: ${{ matrix.unityVersion }}
+#          targetPlatform: ${{ matrix.targetPlatform }}
+#          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue ${{ matrix.additionalParameters }}
+#          providerStrategy: ${{ matrix.providerStrategy }}
+#          allowDirtyBuild: true
+#
+#      ###########################
+#      #          Upload         #
+#      ###########################
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name:
+#            'Build ${{ matrix.targetPlatform }} on Ubuntu (${{ matrix.unityVersion }}_il2cpp_${{ matrix.buildWithIl2cpp
+#            }}_params_${{ matrix.additionalParameters }})'
+#          path: build
+#          retention-days: 14

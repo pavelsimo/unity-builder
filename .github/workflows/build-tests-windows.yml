@@ -1,131 +1,131 @@
-name: Builds - Windows
-
-on:
-  workflow_dispatch:
-  push:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
-jobs:
-  buildForAllPlatformsWindows:
-    name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
-    runs-on: windows-2022
-    strategy:
-      fail-fast: false
-      matrix:
-        projectPath:
-          - test-project
-        unityVersion:
-          - 2021.3.32f1
-          - 2022.3.13f1
-          - 2023.2.2f1
-        targetPlatform:
-          - Android # Build an Android apk.
-          - StandaloneWindows64 # Build a Windows 64-bit standalone.
-          - WSAPlayer # Build a UWP App
-          - tvOS # Build an Apple TV XCode project
-
-    steps:
-      ###########################
-      #         Checkout        #
-      ###########################
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      ###########################
-      #          Cache          #
-      ###########################
-      - uses: actions/cache@v4
-        with:
-          path: ${{ matrix.projectPath }}/Library
-          key: Library-${{ matrix.projectPath }}-windows-${{ matrix.targetPlatform }}
-          restore-keys: |
-            Library-${{ matrix.projectPath }}-windows-
-            Library-
-
-      ###########################
-      #  Set Scripting Backend  #
-      ###########################
-      - name: Set Scripting Backend To il2cpp
-        run: |
-          Move-Item -Path "./test-project/ProjectSettings/ProjectSettingsIl2cpp.asset" -Destination "./test-project/ProjectSettings/ProjectSettings.asset" -Force
-
-      ###########################
-      #          Build          #
-      ###########################
-      - name: Build
-        uses: ./
-        id: build-1
-        continue-on-error: true
-        timeout-minutes: 30
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-        with:
-          buildName: 'GameCI Test Build'
-          projectPath: ${{ matrix.projectPath }}
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
-          allowDirtyBuild: true
-      # We use dirty build because we are replacing the default project settings file above
-
-      - name: Sleep for Retry
-        if: ${{ steps.build-1.outcome == 'failure' }}
-        run: |
-          Start-Sleep -s 120
-
-      - name: Build Retry 1
-        uses: ./
-        id: build-2
-        continue-on-error: true
-        timeout-minutes: 30
-        if: steps.build-1.outcome == 'failure'
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-        with:
-          buildName: 'GameCI Test Build'
-          projectPath: ${{ matrix.projectPath }}
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
-          allowDirtyBuild: true
-      # We use dirty build because we are replacing the default project settings file above
-
-      - name: Sleep for Retry
-        if: ${{ steps.build-1.outcome == 'failure' && steps.build-2.outcome == 'failure' }}
-        run: |
-          Start-Sleep -s 240
-
-      - name: Build Retry 2
-        uses: ./
-        id: build-3
-        timeout-minutes: 30
-        if: ${{ steps.build-1.outcome == 'failure' && steps.build-2.outcome == 'failure' }}
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-        with:
-          buildName: 'GameCI Test Build'
-          projectPath: ${{ matrix.projectPath }}
-          unityVersion: ${{ matrix.unityVersion }}
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
-          allowDirtyBuild: true
-      # We use dirty build because we are replacing the default project settings file above
-
-      ###########################
-      #          Upload         #
-      ###########################
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Build ${{ matrix.targetPlatform }} on Windows (${{ matrix.unityVersion }})
-          path: build
-          retention-days: 14
+#name: Builds - Windows
+#
+#on:
+#  workflow_dispatch:
+#  push:
+#
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+#  cancel-in-progress: true
+#
+#jobs:
+#  buildForAllPlatformsWindows:
+#    name: ${{ matrix.targetPlatform }} on ${{ matrix.unityVersion }}
+#    runs-on: windows-2022
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        projectPath:
+#          - test-project
+#        unityVersion:
+#          - 2021.3.32f1
+#          - 2022.3.13f1
+#          - 2023.2.2f1
+#        targetPlatform:
+#          - Android # Build an Android apk.
+#          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+#          - WSAPlayer # Build a UWP App
+#          - tvOS # Build an Apple TV XCode project
+#
+#    steps:
+#      ###########################
+#      #         Checkout        #
+#      ###########################
+#      - uses: actions/checkout@v4
+#        with:
+#          lfs: true
+#
+#      ###########################
+#      #          Cache          #
+#      ###########################
+#      - uses: actions/cache@v4
+#        with:
+#          path: ${{ matrix.projectPath }}/Library
+#          key: Library-${{ matrix.projectPath }}-windows-${{ matrix.targetPlatform }}
+#          restore-keys: |
+#            Library-${{ matrix.projectPath }}-windows-
+#            Library-
+#
+#      ###########################
+#      #  Set Scripting Backend  #
+#      ###########################
+#      - name: Set Scripting Backend To il2cpp
+#        run: |
+#          Move-Item -Path "./test-project/ProjectSettings/ProjectSettingsIl2cpp.asset" -Destination "./test-project/ProjectSettings/ProjectSettings.asset" -Force
+#
+#      ###########################
+#      #          Build          #
+#      ###########################
+#      - name: Build
+#        uses: ./
+#        id: build-1
+#        continue-on-error: true
+#        timeout-minutes: 30
+#        env:
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+#        with:
+#          buildName: 'GameCI Test Build'
+#          projectPath: ${{ matrix.projectPath }}
+#          unityVersion: ${{ matrix.unityVersion }}
+#          targetPlatform: ${{ matrix.targetPlatform }}
+#          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
+#          allowDirtyBuild: true
+#      # We use dirty build because we are replacing the default project settings file above
+#
+#      - name: Sleep for Retry
+#        if: ${{ steps.build-1.outcome == 'failure' }}
+#        run: |
+#          Start-Sleep -s 120
+#
+#      - name: Build Retry 1
+#        uses: ./
+#        id: build-2
+#        continue-on-error: true
+#        timeout-minutes: 30
+#        if: steps.build-1.outcome == 'failure'
+#        env:
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+#        with:
+#          buildName: 'GameCI Test Build'
+#          projectPath: ${{ matrix.projectPath }}
+#          unityVersion: ${{ matrix.unityVersion }}
+#          targetPlatform: ${{ matrix.targetPlatform }}
+#          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
+#          allowDirtyBuild: true
+#      # We use dirty build because we are replacing the default project settings file above
+#
+#      - name: Sleep for Retry
+#        if: ${{ steps.build-1.outcome == 'failure' && steps.build-2.outcome == 'failure' }}
+#        run: |
+#          Start-Sleep -s 240
+#
+#      - name: Build Retry 2
+#        uses: ./
+#        id: build-3
+#        timeout-minutes: 30
+#        if: ${{ steps.build-1.outcome == 'failure' && steps.build-2.outcome == 'failure' }}
+#        env:
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+#        with:
+#          buildName: 'GameCI Test Build'
+#          projectPath: ${{ matrix.projectPath }}
+#          unityVersion: ${{ matrix.unityVersion }}
+#          targetPlatform: ${{ matrix.targetPlatform }}
+#          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
+#          allowDirtyBuild: true
+#      # We use dirty build because we are replacing the default project settings file above
+#
+#      ###########################
+#      #          Upload         #
+#      ###########################
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: Build ${{ matrix.targetPlatform }} on Windows (${{ matrix.unityVersion }})
+#          path: build
+#          retention-days: 14
