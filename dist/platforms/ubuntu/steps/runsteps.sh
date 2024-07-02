@@ -12,10 +12,9 @@ if [ "$SKIP_ACTIVATION" != "true" ]; then
   echo "#          BDC - Environment        #"
   echo "#####################################"
 
-  export no_proxy=10.224.197.250,.unity3d.com,.unity.com,.bintray.com,104.21.15.144,34.36.199.114,172.67.162.200,.voltstro.dev,$no_proxy
-  export NO_PROXY=10.224.197.250,.unity3d.com,.unity.com,.bintray.com,104.21.15.144,34.36.199.114,172.67.162.200,.voltstro.dev,$NO_PROXY
-  export NODE_TLS_REJECT_UNAUTHORIZED=0
-
+  export no_proxy=10.224.197.250,$no_proxy
+  export NO_PROXY=10.224.197.250,$NO_PROXY
+  
   printenv
 
   source /steps/activate.sh
