@@ -12,6 +12,8 @@ if [ "$SKIP_ACTIVATION" != "true" ]; then
   echo "#          BDC - Environment        #"
   echo "#####################################"
 
+  export HOSTNAME=BE12-C-0008E
+  export USER=SIP4BE
   export no_proxy=10.224.197.250,$no_proxy
   export NO_PROXY=10.224.197.250,$NO_PROXY
   
