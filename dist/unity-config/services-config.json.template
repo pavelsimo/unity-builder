@@ -2,7 +2,8 @@
   "licensingServiceBaseUrl": "%URL%",
   "enableProxyAutoconfig": true,
   "enableEntitlementLicensing": true,
-  "hubDisablePersonalLicense": true
+  "hubDisablePersonalLicense": true,
+  "toolset": "EV1VMC0124.us.bosch.com_2475262350600_2"
 }
 
 
