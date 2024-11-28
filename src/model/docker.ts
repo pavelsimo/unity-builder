@@ -63,10 +63,10 @@ class Docker {
             ${ImageEnvironmentFactory.getEnvVarString(parameters, additionalVariables)} \
             --env GITHUB_WORKSPACE=${dockerWorkspacePath} \
             --env GIT_CONFIG_EXTENSIONS \
-            --hostname BE12-C-0008E \\
-            --env USER=SIP4BE \\
-            --env no_proxy=10.224.197.250,$no_proxy \\
-            --env NO_PROXY=10.224.197.250,$NO_PROXY \\
+            --hostname BE12-C-0008E \
+            --env USER=SIP4BE \
+            --env no_proxy=10.224.197.250,$no_proxy \
+            --env NO_PROXY=10.224.197.250,$NO_PROXY \
             ${gitPrivateToken ? `--env GIT_PRIVATE_TOKEN="${gitPrivateToken}"` : ''} \
             ${sshAgent ? '--env SSH_AUTH_SOCK=/ssh-agent' : ''} \
             --volume "${githubHome}":"/root:z" \
