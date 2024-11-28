@@ -11,8 +11,8 @@ if [ "$SKIP_ACTIVATION" != "true" ]; then
   echo "#####################################"
   echo "#          BDC - Environment        #"
   echo "#####################################"
-  #export no_proxy=10.224.197.250,$no_proxy
-  #export NO_PROXY=10.224.197.250,$NO_PROXY
+  export no_proxy=10.224.197.250,$no_proxy
+  export NO_PROXY=10.224.197.250,$NO_PROXY
 
   printenv
 
